@@ -25,6 +25,10 @@ import Login from './pages/Login/Login';
 import Register from './pages/Register/Register';
 import Dashboard from './pages/Dashboard/Dashboard';
 import CreatePost from './pages/CreatePost/CreatePost';
+import Search from './pages/Search/Search';
+import Post from './pages/Post/Post';
+import EditPost from './pages/EditPost/EditPost';
+import Logo from "./Imagens blog/Stillo_black_logo.jpg"
 
 function App() {
 
@@ -46,22 +50,25 @@ function App() {
   }, [auth])
 
   if (loadingUser) {
-    return <p>Carragando...</p>
+    return <p>Carregando...</p>
   }
 
   return (
     <div className="App">
       <AuthProvider value={{user}}>
        <BrowserRouter>
-         <h1>Miniblog</h1>
+         <img className='logo' src={Logo} alt="logo Stillo estilo preto" />
           <Navbar/>
             <div className='container'>
             <Routes>
-              <Route path='/' element={<Inicio/>} />
+              <Route path='/' element={user ? <Inicio/> : <Navigate to="/login" /> } />
               <Route path='/about' element={<About/>} />
+              <Route path='/search' element={<Search/>}/>
+              <Route path='/posts/:id' element={<Post/>}/>
               <Route path='/login' element={!user ? <Login/> : <Navigate to= "/"/>} />
               <Route path='/register' element={!user ? <Register/> : <Navigate to= "/"/>} />
               <Route path='/posts/create' element={user ? <CreatePost/> : <Navigate to= "/login"/>} />
+              <Route path='/posts/edit/:id' element={user ? <EditPost/> : <Navigate to="/login" /> }/>
               <Route path='/dashboard' element={user ? <Dashboard/> : <Navigate to= "/login"/>} />
             </Routes>
       </div> 

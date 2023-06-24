@@ -1,38 +1,46 @@
-import styles from "./CreatePost.module.css"
+import styles from "./EditPost.module.css"
 
-import { useState } from "react"
-import { userInsertDocument } from "../../hooks/useInsertDocument"
-import { useNavigate } from "react-router-dom"
-
+import { useEffect, useState } from "react"
+import { useNavigate, useParams } from "react-router-dom"
 import { useAuthValue } from "../../context/AuthContext"
+import { useFetchDocument } from "../../hooks/useFetchDocument"
+import { useUpdateDocument } from "../../hooks/useUpdateDocument"
 
 
 
-const CreatePost = () => {
+const EditPost = () => {
+
+  const {id} = useParams()
+  const { document: post} = useFetchDocument("posts", id)
 
   const [title, setTitle]= useState("")
   const [image, setImage]= useState("")
   const [body, setBody]= useState("")
   const [tags, setTags]= useState([])
   const [formError, setFormError]= useState("")
-  const [selectedImage, setSelectedImage] = useState(null)
+
+  useEffect(() => {
+    if (post) {
+    setTitle(post.title)
+    setBody(post.body)
+    setImage(post.image)
+
+    const textTags = post.tags.join(", ")
+
+    setTags(textTags)
+  }
+
+}, [post])
 
   const {user} = useAuthValue()
 
-  const {insertDocument, response} = userInsertDocument("posts")
+  const {updateDocument, response} = useUpdateDocument("posts")
 
   const navigate = useNavigate()
 
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    setSelectedImage(URL.createObjectURL(file));
-  };
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
     setFormError("")
-    console.log("handleSubmit")
-    console.log(selectedImage)
 
     // Validate image URL
     try {
@@ -47,34 +55,37 @@ const CreatePost = () => {
     const tagsArray = tags.split(",").map((tag) => tag.trim().toLowerCase())
 
     // checar todos os valores
-    if (!title || !tags || !body || selectedImage) {
+    if (!title || !image || !tags || !body) {
       setFormError ("Por favor, preecha todos os campos!")
     }
 
     if (formError) return;
 
-    insertDocument({
+   const data = {
       title,
       image,
-      selectedImage,
       body,
       tags: tagsArray,
       uid: user.uid,
       createBy: user.displayName
-    })
+    }
+
+    updateDocument(id, data)
 
     // Redirect Home page
-    navigate("/")
+    navigate("/dashboard")
 
 
   }
 
 
   return (
-    <div className={styles.create_post}>
+    <div className={styles.edit_post}>
 
-        <h2>Criar Post</h2>
-        <p>compartilhe  o seu pensamento! </p>
+        {post && (
+          <>
+        <h2>Editar post: {post.title}</h2>
+        <p>Altere os dados do post como desejar!</p>
         <form onSubmit={handleSubmit}>
           <label>
             <span>Título:</span>
@@ -91,23 +102,24 @@ const CreatePost = () => {
               <input 
               type="text"
               name="image"
+              required
               placeholder="Insira uma imagem"
               value={image}
               onChange={(e) => setImage(e.target.value)} />
           </label>
-          <label>
-            <span>Carregar imagem:</span>
-            <input 
-            type="file"
-            name="selectedImage"
-            placeholder="Ou insira uma imagem aqui."
-            onChange={(e) => setSelectedImage(e.target.files[0])} />
-          </label>
+          <p className={styles.preview_title}>Preview da imagem atual:</p>
+          <img
+          className={styles.image_preview}
+          src={post.image}
+          alt={post.title}
+          />
           <label>
             <span>Conteúdo</span>
               <textarea 
               name="body" 
               id="body" 
+              cols="20" 
+              rows="05" 
               required
               placeholder="Escreva..."
               value={body}
@@ -115,7 +127,7 @@ const CreatePost = () => {
               ></textarea>             
           </label>
           <label>
-            <span>Tags da imagem:</span>
+            <span>URL da imagem:</span>
               <input 
               type="text"
               name="tags"
@@ -124,17 +136,19 @@ const CreatePost = () => {
               value={tags}
               onChange={(e) => setTags(e.target.value)} />
           </label>
-          <br />
-          {!response.loading && <button className="btn">Cadastrar</button>}
+          {!response.loading && <button className="btn">Editar</button>}
           {response.loading && (<button className="btn" disabled>Aguarde...</button>)}
             
           {response.error && <p className="error">{response.error}</p>}
           {formError && <p className="error">{formError}</p>}
         </form>
+          
+          </>
+        )}
 
     </div>
   )
 }
 
-export default CreatePost
+export default EditPost
 

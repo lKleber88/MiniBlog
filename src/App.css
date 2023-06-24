@@ -2,3 +2,9 @@
   min-height: 60vh;
   margin-bottom: 5em;
 }
+
+.logo {
+  padding: 10px;
+  height: 120px;
+  width: 250px;
+}

@@ -1,81 +1,13 @@
-/*     import {
-    getAuth,
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    updateProfile,
-    signOut
-    } from 'firebase/auth'
-
-    import {useState, useEffect} from "react"
-
-    export const useAuthentication = () => {
-    const [error, setError] = useState(null)
-    const [loading, setLoading] = useState(null)
-
-    // cleanup
-    // como ocorrerá muita mudança de componente entre pais, é necessário o cleanup
-    // para não deixar resquícios de funçoes sendo ainda executadas.
-    // para não ter problema de limite de memória.
-
-    // deal with memory leak
-    // será um useState para cancelar as ações futuras do componente
-    const [cancelled, setCancelled] = useState(false)
-    // ele não esta cancelado, será cancelado depois que as coisas derem certo
-
-    const auth = getAuth()
-
-    function checkIfIsCancelled() {
-        if (cancelled) {
-            return;
-        }
-    }
-
-    const createUser = async (data) => {
-        checkIfIsCancelled()
-
-        setLoading(true)
-
-        try {
-
-            const {user} = await createUserWithEmailAndPassword(
-                auth,
-                data.email,
-                data.password
-            )
-
-        await updateProfile(user, {
-            displayName: data.displayName,
-        })
-
-        return user
-
-
-
-        } catch (error) {
-
-            console.log(error.message)
-            console.log(typeof error.message)
-
-        }
-
-        setLoading(false)
-    }
-
-    useEffect(() => {
-        return () => setCancelled(true)
-    }, [])
-
-    return {
-        auth,
-        createUser,
-        error,
-        loading
-    }
-} */
-
 import { db } from '../firebase/config';
 
-import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { 
+    getAuth, 
+    createUserWithEmailAndPassword, 
+    updateProfile,
+    signInWithEmailAndPassword,
+    signOut,
+} from 'firebase/auth';
+
 import { useState, useEffect } from "react";
 
 export const useAuthentication = () => {
@@ -90,6 +22,8 @@ export const useAuthentication = () => {
       return;
     }
   }
+
+  // esse é o register
 
   const createUser = async (data) => {
     checkIfIsCancelled();
@@ -126,11 +60,53 @@ export const useAuthentication = () => {
 
       setLoading(false);
       setError(systemErrorMessage)
-    }
-
-   
+    }   
   };
 
+  // logout - sign out
+
+  const logout = () => {
+
+    checkIfIsCancelled()
+
+    signOut(auth)
+
+  }
+
+  // login - sign in
+  const login = async(data) => {
+
+    checkIfIsCancelled()
+
+    setLoading(true)
+    setError(false)
+
+    try{
+
+       await signInWithEmailAndPassword(auth, data.email, data.password)
+       setLoading(false)
+
+    }catch (error) {
+      console.log(error.message);
+      console.log(typeof error.message);
+      console.log(error.message.includes("user-not"));
+
+      let systemErrorMessage;
+
+      if(error.message.includes("user-not-found")) {
+        systemErrorMessage = "Usuário não encontrado."
+
+      } else if(error.message.includes("wrong-password")) {
+        systemErrorMessage = "Senha incorreta!"
+      } else {
+        systemErrorMessage = "Ocorreu um erro, por favor tente mais tarde!"
+      }
+
+      setError(systemErrorMessage)
+      setLoading(false)
+
+    }
+  }
   useEffect(() => {
     return () => setCancelled(true);
   }, []);
@@ -139,7 +115,10 @@ export const useAuthentication = () => {
     auth,
     createUser,
     error,
-    loading
+    loading,
+    logout,
+    login,
+
   };
 };
 

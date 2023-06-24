@@ -1,6 +1,7 @@
-import { useAuthentication } from "../../hooks/useAuthentication"
 import styles from "./Register.module.css"
-//import { db } from "../../firebase/config"
+
+import { useAuthentication } from "../../hooks/useAuthentication"
+import { db } from "../../firebase/config"
 
 import {useState, useEffect} from "react"
 
@@ -104,7 +105,7 @@ const Register = () => {
                 />
             </label>
             {!loading && <button className="btn">Cadastrar</button>}
-            {loading && <button className="btn" disabled>Aguarde...</button>}
+            {loading && (<button className="btn" disabled>Aguarde...</button>)}
             
             {error && <p className="error">{error}</p>}
             
